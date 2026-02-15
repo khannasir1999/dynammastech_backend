@@ -1,12 +1,9 @@
 import express, { Express, NextFunction } from 'express';
-import http from 'http';
-import path from 'path';
 import cors from 'cors';
 import tasksRoutes from './routes/taskRoutes';
 import { Request, Response } from 'express';
 // Create Express app
 const app: Express = express();
-const server = http.createServer(app);
 
 // Middleware
 const corsOptions = {
@@ -22,6 +19,16 @@ app.use(cors(corsOptions))
 // Regular JSON parsing for other routes
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Health check endpoint (doesn't require DB connection)
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok', message: 'Server is healthy' });
+});
+
+// Root endpoint for basic health checks
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok', message: 'API is running' });
+});
 
 app.use('/api', tasksRoutes);
 
@@ -39,7 +46,7 @@ app.use((err: ErrorWithCode, _req: Request, res: Response, _next: NextFunction) 
       message: 'File size exceeded. Maximum allowed size is 10 MB.',
     });
   }
-  _next(err?.message);
+  _next(err);
 });
 
-export default server;
+export default app;
