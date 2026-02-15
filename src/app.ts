@@ -7,11 +7,26 @@ const app: Express = express();
 
 // Middleware
 const corsOptions = {
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:4173',
-    'http://localhost:4174',
-  ],
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (like mobile apps, Postman, etc.)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:4173',
+      'http://localhost:4174',
+      'https://dynammastech-frontend-ew2g.vercel.app',
+    ];
+
+    // Check if origin is in allowed list or is a Vercel deployment
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }
 
